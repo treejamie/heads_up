@@ -3,8 +3,9 @@ import Config
 # Configure your database
 config :heads_up, HeadsUp.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "mysecretpassword",
   hostname: "localhost",
+  port: 5433,
   database: "heads_up_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
@@ -19,7 +20,7 @@ config :heads_up, HeadsUp.Repo,
 # Binding to loopback ipv4 address prevents access from other machines.
 config :heads_up, HeadsUpWeb.Endpoint,
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: 4001],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
