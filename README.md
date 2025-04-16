@@ -1,18 +1,22 @@
-# HeadsUp
+# Heads Up
 
-To start your Phoenix server:
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## 🗃️ Database
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+The local database is being ran with a pod using podman. Note, this one runs a port higher tp allow for both apps to be ran at the same time.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+```bash
+podman run --rm -p 5433:5432 -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=heads_up_dev -v $HOME/pods/heads_up:/var/lib/postgresql/data postgres -d postgres
+```
 
-## Learn more
+## 🌐 Web Server
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+Start interactive server - note, just like the database, this app runs one port higher to allow for both apps to be ran at the same time.
+
+```
+iex -S mix phx.server
+```
+
+Now you can visit [`localhost:4001`](http://localhost:4001) from your browser.
+
+
