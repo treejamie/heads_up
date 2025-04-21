@@ -3,7 +3,11 @@
 
     <ol>
         <%= for tip <- @tips do %>
-            <li>{tip.text}</li>
+        <li>
+            <a href={url(~p"/tips/#{tip.id}")}>
+                {tip.text}
+            </a>
+        </li>
         <% end %>
     </ol>
 
