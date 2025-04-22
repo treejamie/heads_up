@@ -10,22 +10,30 @@ defmodule HeadsUpWeb.EffortLive do
 
   def render(assigns) do
     ~H"""
-<div class="effort">
-  <h1>Community Love</h1>
-  <section>
-    <div>
-      <%= @responders%>
+    <div class="effort">
+      <h1>Community</h1>
+      <section>
+        <div>
+        <button phx-click="add">
+        +
+        </button>
+          <%= @responders%>
+        </div>
+        &times;
+        <div>
+          <%= @minutes_per_responder %>
+        </div>
+        =
+        <div>
+        <%= @responders * @minutes_per_responder %>
+        </div>
+      </section>
     </div>
-    &times;
-    <div>
-      <%= @minutes_per_responder %>
-    </div>
-    =
-    <div>
-    <%= @responders * @minutes_per_responder %>
-    </div>
-  </section>
-</div>
     """
+  end
+
+  def handle_event("add", _, socket) do
+    socket = update(socket, :responders, &(&1 + 1))
+    {:noreply, socket}
   end
 end
