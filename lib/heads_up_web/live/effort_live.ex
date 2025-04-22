@@ -5,10 +5,13 @@ defmodule HeadsUpWeb.EffortLive do
 
     socket = assign(socket, responders: 0, minutes_per_responder: 10)
 
+    IO.inspect(self(), label: "MOUNT")
+
     {:ok, socket}
   end
 
   def render(assigns) do
+    IO.inspect(self(), label: "RENDER")
     ~H"""
     <div class="effort">
       <h1>Community</h1>
@@ -33,7 +36,11 @@ defmodule HeadsUpWeb.EffortLive do
   end
 
   def handle_event("add", _, socket) do
+
+    IO.inspect(self(), label: "ADD")
+
     socket = update(socket, :responders, &(&1 + 1))
+
     {:noreply, socket}
   end
 end
