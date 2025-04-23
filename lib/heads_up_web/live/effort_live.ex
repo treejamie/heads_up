@@ -47,12 +47,6 @@ defmodule HeadsUpWeb.EffortLive do
     {:noreply, socket}
   end
 
-  def handle_info(:tick, socket) do
-    Process.send_after(self(), :tick, 2000)
-    {:noreply, update(socket, :responders, &(&1 + 3))}
-  end
-
-
   def handle_event("add", _, socket) do
 
     IO.inspect(self(), label: "ADD")
@@ -60,5 +54,10 @@ defmodule HeadsUpWeb.EffortLive do
     socket = update(socket, :responders, &(&1 + 1))
 
     {:noreply, socket}
+  end
+
+  def handle_info(:tick, socket) do
+    Process.send_after(self(), :tick, 2000)
+    {:noreply, update(socket, :responders, &(&1 + 3))}
   end
 end
