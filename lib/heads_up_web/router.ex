@@ -30,6 +30,7 @@ defmodule HeadsUpWeb.Router do
     get "/tips/:id", TipController, :show
 
     live "/effort", EffortLive
+    live "/incidents", IncidentsLive.Index
 
   end
 
