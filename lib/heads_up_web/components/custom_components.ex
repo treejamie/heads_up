@@ -1,5 +1,5 @@
 defmodule HeadsUpWeb.CustomComponents do
-  use HeadsUpWeb, :html
+  use Phoenix.Component
 
   attr :status, :atom, values: [:pending, :resolved, :cancelled], default: :pending
   attr :class, :string, default: nil
@@ -14,6 +14,24 @@ defmodule HeadsUpWeb.CustomComponents do
       @class
       ]}>
       <%= @status %>
+    </div>
+    """
+  end
+
+
+  slot :inner_block, required: true
+  slot :tagline
+  def headline(assigns) do
+    assigns = assign(assigns, :emoji, ~w(😎 🤩 😶) |> Enum.random())
+
+    ~H"""
+    <div class="headline">
+      <h1>
+        <%= render_slot(@inner_block) %>
+      </h1>
+      <div :for={tagline <- @tagline} class="tagline">
+        <%= render_slot(tagline, @emoji ) %>
+      </div>
     </div>
     """
   end
