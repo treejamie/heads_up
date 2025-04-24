@@ -1,10 +1,10 @@
 defmodule HeadsUpWeb.IncidentsLive.Index do
   use HeadsUpWeb, :live_view
-  alias HeadsUp.Incident
+  alias HeadsUp.Incidents
   import HeadsUpWeb.CustomComponents
 
   def mount(_params, _session, socket) do
-    socket = assign(socket, [incidents: Incident.list_incidents(), page_title: "Incidents"])
+    socket = assign(socket, [incidents: Incidents.list_incidents(), page_title: "Incidents"])
     {:ok, socket}
   end
 
