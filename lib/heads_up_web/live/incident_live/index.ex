@@ -25,7 +25,7 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
     """
   end
 
-  attr :incident, HeadsUp.Incident, required: true
+  attr :incident, Incidents.Incident, required: true
   def incident_card(assigns) do
     ~H"""
       <.link navigate={~p"/incidents/#{@incident}"}>
