@@ -2,7 +2,6 @@
 defmodule HeadsUp.Incidents do
 
   alias HeadsUp.Repo
-
   alias HeadsUp.Incidents.Incident
 
   @spec list_incidents() :: [
@@ -19,6 +18,7 @@ defmodule HeadsUp.Incidents do
   def list_incidents do
     Repo.all(Incident)
   end
+
 
   def get_incident!(id) do
     Repo.get!(Incident, id)
