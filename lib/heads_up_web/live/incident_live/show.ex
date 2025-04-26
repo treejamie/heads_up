@@ -7,7 +7,7 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
   end
 
   def handle_params(%{"id" => id}, _uri, socket) do
-    incident = Incidents.get_incident(id)
+    incident = Incidents.get_incident!(id)
     socket =
       socket
       |> assign(:incident, incident)

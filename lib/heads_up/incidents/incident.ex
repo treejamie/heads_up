@@ -2,6 +2,7 @@ defmodule HeadsUp.Incidents.Incident do
   use Ecto.Schema
   import Ecto.Changeset
 
+
   schema "incidents" do
     field :name, :string
     field :priority, :integer
