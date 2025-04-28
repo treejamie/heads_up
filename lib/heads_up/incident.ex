@@ -1,8 +1,8 @@
-
 defmodule HeadsUp.Incidents do
 
   alias HeadsUp.Repo
   alias HeadsUp.Incidents.Incident
+  import Ecto.Query
 
   @spec list_incidents() :: [
           %Incident{
@@ -19,12 +19,25 @@ defmodule HeadsUp.Incidents do
     Repo.all(Incident)
   end
 
+  def filter_incidents do
+    Incident
+    |> where(status: :resolved)
+    |> where([r], ilike(r.name, "%in%"))
+    |> order_by(desc: :name)
+    |> Repo.all()
+  end
+
 
   def get_incident!(id) do
     Repo.get!(Incident, id)
   end
 
   def get_urgent(incident) do
-    list_incidents() |> List.delete(incident)
+    Incident
+    |> where(status: :pending)
+    |> where([r], r.id != ^incident.id)
+    |> order_by(asc: :priority)
+    |> limit(3)
+    |> Repo.all()
   end
 end

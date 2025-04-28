@@ -6,7 +6,7 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> stream(:incidents, Incidents.list_incidents())
+      |> stream(:incidents, Incidents.filter_incidents())
       |> assign(:page_title, "Incidents")
     {:ok, socket}
   end
