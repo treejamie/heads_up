@@ -11,7 +11,10 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     socket =
       socket
       |> assign(:incident, incident)
-      |> assign(:urgent_incidents, Incidents.get_urgent(incident))
+      |> assign_async(:urgent_incidents, fn  ->
+        {:ok, %{urgent_incidents: Incidents.get_urgent(incident)}}
+        # {:error, "full of owls 🦉"}
+      end )
 
     {:noreply, socket}
   end
@@ -48,14 +51,30 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     ~H"""
     <section>
       <h4>Urgent Incidents</h4>
-      <ul class="incidents">
-          <li :for={incident <- @incidents}>
-          <.link navigate={~p"/incidents/#{incident}"}>
-              <img src={incident.image_path}>
-              {incident.name}
-            </.link>
-          </li>
-      </ul>
+      <.async_result :let={result} assign={@incidents}>
+        <:loading>
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </:loading>
+
+        <:failed :let={{:error, reason}}>
+        <div class="failed">
+            {reason}
+          </div>
+        </:failed>
+
+        <ul class="incidents">
+            <li :for={incident <- result}>
+            <.link navigate={~p"/incidents/#{incident}"}>
+                <img src={incident.image_path}>
+                {incident.name}
+              </.link>
+            </li>
+        </ul>
+
+      </.async_result>
+
     </section>
     """
   end
