@@ -9,7 +9,6 @@ defmodule HeadsUp.Incidents do
   end
 
   def filter_incidents(filter) do
-    IO.inspect(filter)
     Incident
     |> with_status(filter["status"])
     |> with_order(filter["sort_by"])
@@ -36,6 +35,9 @@ defmodule HeadsUp.Incidents do
   end
 
   def get_urgent(incident) do
+    # simulate a very slow query
+    Process.sleep(3000)
+
     Incident
     |> where(status: :pending)
     |> where([r], r.id != ^incident.id)
