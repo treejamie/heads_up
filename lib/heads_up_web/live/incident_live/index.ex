@@ -8,7 +8,8 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
       socket
       |> stream(:incidents, Incidents.list_incidents())
       |> assign(:page_title, "Incidents")
-      |> assign(:form, to_form%{})
+      |> assign(:form, to_form(%{}))
+
     {:ok, socket}
   end
 
@@ -16,7 +17,8 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
     socket =
       socket
       |> assign(:form, to_form(params))
-      |> stream(:incidents, Incidents.filter_incidents(params), reset: :true)
+      |> stream(:incidents, Incidents.filter_incidents(params), reset: true)
+
     {:noreply, socket}
   end
 
@@ -24,16 +26,24 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
     ~H"""
     <div class="incident-index">
       <.headline>
-        <.icon name="hero-trophy-mini" />
-        25 Incidents Resolved This Month!
+        <.icon name="hero-trophy-mini" /> 25 Incidents Resolved This Month!
         <:tagline :let={vibe}>
-          Thanks for pitching in. <%= vibe %>
+          Thanks for pitching in. {vibe}
         </:tagline>
       </.headline>
 
       <.filter_form form={@form} />
+
       <div class="incidents" id="incidents" phx-update="stream">
-        <.incident_card :for={{dom_id,  incident} <- @streams.incidents} incident={incident} id={dom_id}/>
+        <div id="empty" class="no-results only:block hidden">
+          No incidents found. Try changing your filters.
+        </div>
+
+        <.incident_card
+          :for={{dom_id, incident} <- @streams.incidents}
+          incident={incident}
+          id={dom_id}
+        />
       </div>
     </div>
     """
@@ -42,30 +52,39 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
   def filter_form(assigns) do
     ~H"""
     <.form for={@form} id="incidents-form" phx-change="filter">
-      <.input field={@form[:q]} placeholder="Search..." autocomplete="off" />
+      <.input
+        field={@form[:q]}
+        placeholder="Search..."
+        autocomplete="off"
+        phx-debounce="500" />
 
       <.input
         type="select"
         field={@form[:status]}
         prompt="Status"
         options={[:pending, :resolved, :canceled]}
-        />
+      />
 
-        <.input
+      <.input
         type="select"
         field={@form[:sort_by]}
         prompt="Sort By"
-        options={[:name, :priority]}
-        />
+        options={[
+          Name: "name",
+          "Priority: High to Low": "priority_desc",
+          "Priority: Low to High": "priority_asc",
+        ]}
+      />
     </.form>
     """
   end
 
   attr :incident, Incidents.Incident, required: true
   attr :id, :string, required: true
+
   def incident_card(assigns) do
     ~H"""
-      <.link navigate={~p"/incidents/#{@incident}"} id={@id}>
+    <.link navigate={~p"/incidents/#{@incident}"} id={@id}>
       <div class="card">
         <img src={@incident.image_path} />
         <h2>{@incident.name}</h2>
@@ -79,5 +98,4 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
     </.link>
     """
   end
-
 end

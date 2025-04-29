@@ -4,29 +4,31 @@ defmodule HeadsUp.Incidents do
   alias HeadsUp.Incidents.Incident
   import Ecto.Query
 
-  @spec list_incidents() :: [
-          %Incident{
-            description: <<_::392, _::_*64>>,
-            id: 1 | 2 | 3,
-            image_path: <<_::64, _::_*8>>,
-            name: <<_::64, _::_*8>>,
-            priority: 1 | 2,
-            status: :canceled | :pending | :resolved
-          },
-          ...
-        ]
   def list_incidents do
     Repo.all(Incident)
   end
 
   def filter_incidents(filter) do
+    IO.inspect(filter)
     Incident
-    |> where(status: ^filter["status"])
+    |> with_status(filter["status"])
+    |> with_order(filter["sort_by"])
     |> where([r], ilike(r.name, ^"%#{filter["q"]}%"))
-    |> IO.inspect
-    |> order_by(desc: :name)
     |> Repo.all()
   end
+
+
+  defp with_order(query, "priority_asc"), do: order_by(query, [asc: :priority])
+  defp with_order(query, "priority_desc"), do: order_by(query, [desc: :priority])
+  defp with_order(query, "name"), do: order_by(query, :name)
+  defp with_order(query, _), do: order_by(query, :id)
+
+
+
+  defp with_status(query, status) when status in ~w(canceled pending resolved) do
+    where(query, status: ^status)
+  end
+  defp with_status(query, _), do: query
 
 
   def get_incident!(id) do
