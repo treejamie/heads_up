@@ -8,6 +8,7 @@ defmodule HeadsUpWeb.AdminIncidentLive.Index do
       |> assign(:page_title, "Incidents Admin")
       |> stream(:incidents, Admin.list_incidents())
 
+
     {:ok, socket}
 
   end
@@ -16,6 +17,13 @@ defmodule HeadsUpWeb.AdminIncidentLive.Index do
     ~H"""
       <.header>
         {@page_title}
+
+        <:actions>
+          <.link navigate={~p"/admin/incidents/new"} class="button">
+            Create Incident
+          </.link>
+        </:actions>
+
       </.header>
 
       <.table id="incidents" rows={@streams.incidents}>
