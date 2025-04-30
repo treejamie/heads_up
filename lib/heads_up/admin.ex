@@ -9,4 +9,10 @@ defmodule HeadsUp.Admin do
     |> order_by(desc: :inserted_at)
     |> Repo.all()
   end
+
+  def create_incident(attrs \\ %{} ) do
+   %Incident{}
+   |> Incident.changeset(attrs)
+   |> Repo.insert()
+  end
 end
