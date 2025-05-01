@@ -10,6 +10,10 @@ defmodule HeadsUp.Admin do
     |> Repo.all()
   end
 
+  def change_incident(%Incident{} = incident, attrs \\ %{}) do
+    Incident.changeset(incident, attrs)
+  end
+
   def create_incident(attrs \\ %{} ) do
    %Incident{}
    |> Incident.changeset(attrs)
