@@ -3,16 +3,26 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
   alias HeadsUp.Admin
   alias HeadsUp.Incidents.Incident
 
-  def mount(_params, _session, socket) do
-    changeset = Admin.change_incident(%Incident{}, %{})
+  def mount(params, _session, socket) do
 
 
-    socket =
-      socket
-      |> assign(page_title: "New Incident")
-      |> assign(:form, to_form(changeset))
+    {:ok, apply_action(socket, socket.assigns.live_action, params)}
+  end
 
-    {:ok, socket}
+  defp apply_action(socket, :new, _params) do
+    incident = %Incident{}
+    changeset = Admin.change_incident(incident)
+    socket
+    |> assign(page_title: "New Incident")
+    |> assign(:form, to_form(changeset))
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    incident = Admin.get_incident!(id)
+    changeset = Admin.change_incident(incident)
+    socket
+    |> assign(page_title: "New Incident")
+    |> assign(:form, to_form(changeset))
   end
 
   def handle_event("save", %{"incident" => incident_params}, socket) do
@@ -38,14 +48,11 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
     {:noreply, socket}
   end
 
-
-
   def render(assigns) do
     ~H"""
     <.header>
       {@page_title}
     </.header>
-
 
     <.simple_form for={@form} id="incident-form" phx-submit="save" phx-change="validate">
       <.input field={@form[:name]} label="Name" required="required" />
@@ -59,7 +66,6 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
       />
 
       <.input field={@form[:priority]} type="number" label="Priority" required="required" />
-
 
       <.input
         field={@form[:status]}

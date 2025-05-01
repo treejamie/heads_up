@@ -10,6 +10,10 @@ defmodule HeadsUp.Admin do
     |> Repo.all()
   end
 
+  def get_incident!(id) do
+    Repo.get!(Incident, id)
+  end
+
   def change_incident(%Incident{} = incident, attrs \\ %{}) do
     Incident.changeset(incident, attrs)
   end
