@@ -4,14 +4,13 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
   alias HeadsUp.Incidents.Incident
 
   def mount(params, _session, socket) do
-
-
     {:ok, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :new, _params) do
     incident = %Incident{}
     changeset = Admin.change_incident(incident)
+
     socket
     |> assign(page_title: "New Incident")
     |> assign(:form, to_form(changeset))
@@ -20,12 +19,24 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
   defp apply_action(socket, :edit, %{"id" => id}) do
     incident = Admin.get_incident!(id)
     changeset = Admin.change_incident(incident)
+
     socket
-    |> assign(page_title: "New Incident")
+    |> assign(page_title: "Edit Incident")
     |> assign(:form, to_form(changeset))
+    |> assign(:incident, incident)
+  end
+
+  def handle_event("validate", %{"incident" => incident}, socket) do
+    changeset = Admin.change_incident(%Incident{}, incident)
+    socket = assign(socket, :form, to_form(changeset, action: :validate))
+    {:noreply, socket}
   end
 
   def handle_event("save", %{"incident" => incident_params}, socket) do
+    save_raffle(socket, socket.assigns.live_action, incident_params)
+  end
+
+  defp save_raffle(socket, :new, incident_params) do
     case Admin.create_incident(incident_params) do
       {:ok, _incident} ->
         socket =
@@ -41,11 +52,20 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
     end
   end
 
+  defp save_raffle(socket, :edit, incident_params) do
+    case Admin.update_incident(socket.assigns.incident, incident_params) do
+      {:ok, _incident} ->
+        socket =
+          socket
+          |> put_flash(:info, "Incident created a success!")
+          |> push_navigate(to: ~p"/admin/incidents")
 
-  def handle_event("validate", %{"incident" => incident}, socket) do
-    changeset = Admin.change_incident(%Incident{}, incident)
-    socket = assign(socket, :form, to_form(changeset, action: :validate))
-    {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        socket = assign(socket, :form, to_form(changeset))
+        {:noreply, socket}
+    end
   end
 
   def render(assigns) do
