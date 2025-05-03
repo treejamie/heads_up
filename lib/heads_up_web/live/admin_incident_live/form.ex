@@ -58,7 +58,7 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
       {:ok, _incident} ->
         socket =
           socket
-          |> put_flash(:info, "Incident created a success!")
+          |> put_flash(:info, "Incident edited for great success!")
           |> push_navigate(to: ~p"/admin/incidents")
 
         {:noreply, socket}
