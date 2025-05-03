@@ -36,6 +36,7 @@ defmodule HeadsUpWeb.AdminIncidentLive.Form do
     save_raffle(socket, socket.assigns.live_action, incident_params)
   end
 
+
   defp save_raffle(socket, :new, incident_params) do
     case Admin.create_incident(incident_params) do
       {:ok, _incident} ->
