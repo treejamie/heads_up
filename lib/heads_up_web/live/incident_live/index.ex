@@ -1,11 +1,13 @@
 defmodule HeadsUpWeb.IncidentsLive.Index do
   use HeadsUpWeb, :live_view
   alias HeadsUp.Incidents
+  alias HeadsUp.Categories
   import HeadsUpWeb.CustomComponents
 
   def mount(_params, _session, socket) do
     socket =
       socket
+      |> assign(:category_options, Categories.category_name_and_slug)
       |> assign(:page_title, "Incidents")
 
     {:ok, socket}
@@ -24,7 +26,7 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
   def handle_event("filter", params, socket) do
     params =
       params
-      |> Map.take(~w(q status sort_by))
+      |> Map.take(~w(q status sort_by category))
       |> Map.reject(fn {_, v} -> v == "" end)
 
     socket = push_navigate(socket, to: ~p"/incidents?#{params}")
@@ -42,7 +44,7 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
         </:tagline>
       </.headline>
 
-      <.filter_form form={@form} />
+      <.filter_form form={@form} category_options={@category_options}/>
 
       <div class="incidents" id="incidents" phx-update="stream">
         <div id="empty" class="no-results only:block hidden">
@@ -77,12 +79,20 @@ defmodule HeadsUpWeb.IncidentsLive.Index do
 
       <.input
         type="select"
+        field={@form[:category]}
+        prompt="Category"
+        options={@category_options}
+      />
+
+      <.input
+        type="select"
         field={@form[:sort_by]}
         prompt="Sort By"
         options={[
           Name: "name",
           "Priority: High to Low": "priority_desc",
           "Priority: Low to High": "priority_asc",
+          "Category": "category"
         ]}
       />
     </.form>
