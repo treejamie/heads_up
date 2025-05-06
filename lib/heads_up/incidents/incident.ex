@@ -4,8 +4,8 @@ defmodule HeadsUp.Incidents.Incident do
 
   schema "incidents" do
     field :name, :string
-    field :priority, :integer
-    field :status, Ecto.Enum, values: [:pending, :resolved, :canceled]
+    field :priority, :integer, default: 1
+    field :status, Ecto.Enum, values: [:pending, :resolved, :canceled], default: :pending
     field :description, :string
     field :image_path, :string, default: "/images/placeholder.jpg"
 
