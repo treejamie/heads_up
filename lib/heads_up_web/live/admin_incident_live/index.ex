@@ -2,6 +2,9 @@ defmodule HeadsUpWeb.AdminIncidentLive.Index do
   use HeadsUpWeb, :live_view
   alias HeadsUp.Admin
 
+
+  on_mount {HeadsUpWeb.UserAuth, :ensure_authenticated}
+
   def mount(_params, _session, socket) do
     socket =
       socket
