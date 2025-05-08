@@ -1,7 +1,6 @@
 defmodule HeadsUpWeb.CategoryLive.Index do
   use HeadsUpWeb, :live_view
 
-  on_mount {HeadsUpWeb.UserAuth, :ensure_authenticated}
 
   alias HeadsUp.Categories
   alias HeadsUp.Categories.Category

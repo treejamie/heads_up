@@ -28,7 +28,6 @@ defmodule HeadsUpWeb.Router do
   scope "/", HeadsUpWeb do
     pipe_through :browser
 
-
     get "/tips", TipController, :index
     get "/tips/:id", TipController, :show
 
@@ -36,7 +35,6 @@ defmodule HeadsUpWeb.Router do
     live "/effort", EffortLive
     live "/incidents", IncidentsLive.Index
     live "/incidents/:id", IncidentsLive.Show
-
   end
 
   scope "/", HeadsUpWeb do
@@ -44,17 +42,21 @@ defmodule HeadsUpWeb.Router do
       :browser,
       :require_authenticated_user
     ]
+    live_session :admin,
+      on_mount: [
+        {HeadsUpWeb.UserAuth, :ensure_authenticated}
+      ] do
+      live "/admin/incidents", AdminIncidentLive.Index
+      live "/admin/incidents/new", AdminIncidentLive.Form, :new
+      live "/admin/incidents/:id/edit", AdminIncidentLive.Form, :edit
 
-    live "/admin/incidents", AdminIncidentLive.Index
-    live "/admin/incidents/new", AdminIncidentLive.Form, :new
-    live "/admin/incidents/:id/edit", AdminIncidentLive.Form, :edit
+      live "/categories", CategoryLive.Index, :index
+      live "/categories/new", CategoryLive.Index, :new
+      live "/categories/:id/edit", CategoryLive.Index, :edit
 
-    live "/categories", CategoryLive.Index, :index
-    live "/categories/new", CategoryLive.Index, :new
-    live "/categories/:id/edit", CategoryLive.Index, :edit
-
-    live "/categories/:id", CategoryLive.Show, :show
-    live "/categories/:id/show/edit", CategoryLive.Show, :edit
+      live "/categories/:id", CategoryLive.Show, :show
+      live "/categories/:id/show/edit", CategoryLive.Show, :edit
+  end
   end
 
   # Other scopes may use custom stacks.
