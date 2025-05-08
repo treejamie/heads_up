@@ -40,11 +40,14 @@ defmodule HeadsUpWeb.Router do
   scope "/", HeadsUpWeb do
     pipe_through [
       :browser,
-      :require_authenticated_user
+      :require_authenticated_user,
+      :require_admin
     ]
+
     live_session :admin,
       on_mount: [
-        {HeadsUpWeb.UserAuth, :ensure_authenticated}
+        {HeadsUpWeb.UserAuth, :ensure_authenticated},
+        {HeadsUpWeb.UserAuth, :ensure_admin}
       ] do
       live "/admin/incidents", AdminIncidentLive.Index
       live "/admin/incidents/new", AdminIncidentLive.Form, :new
@@ -56,7 +59,7 @@ defmodule HeadsUpWeb.Router do
 
       live "/categories/:id", CategoryLive.Show, :show
       live "/categories/:id/show/edit", CategoryLive.Show, :edit
-  end
+    end
   end
 
   # Other scopes may use custom stacks.
