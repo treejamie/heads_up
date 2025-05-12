@@ -15,7 +15,7 @@ defmodule HeadsUp.Responses.Response do
   @doc false
   def changeset(response, attrs) do
     response
-    |> cast(attrs, [:status])
+    |> cast(attrs, [:status, :note])
     |> validate_required([:note, :status])
     |> validate_length(:note, max: 100)
     |> assoc_constraint(:user)
