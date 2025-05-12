@@ -7,6 +7,8 @@ defmodule HeadsUp.Responses do
   alias HeadsUp.Repo
 
   alias HeadsUp.Responses.Response
+  alias HeadsUp.Incidents.Incident
+  alias HeadsUp.Accounts.User
 
   @doc """
   Returns the list of responses.
@@ -49,8 +51,8 @@ defmodule HeadsUp.Responses do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_response(attrs \\ %{}) do
-    %Response{}
+  def create_response(%User{} = user, %Incident{} = incident, attrs \\ %{}) do
+    %Response{user: user, incident: incident}
     |> Response.changeset(attrs)
     |> Repo.insert()
   end

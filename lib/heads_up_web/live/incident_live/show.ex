@@ -1,13 +1,14 @@
 defmodule HeadsUpWeb.IncidentsLive.Show do
   use HeadsUpWeb, :live_view
   alias HeadsUp.Incidents
+  alias HeadsUp.Responses
+  alias HeadsUp.Responses.Response
 
   on_mount({HeadsUpWeb.UserAuth, :mount_current_user})
 
   def mount(_params, _session, socket) do
-    socket =
-      assign(socket, :form, to_form(%{}))
-
+    changeset = Responses.change_response(%Response{}, %{})
+    socket = assign(socket, :form, to_form(changeset))
     {:ok, socket}
   end
 
@@ -47,7 +48,7 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
         <div class="left">
           <div :if={@incident.status == :pending}>
             <%= if @current_user do %>
-            <.form for={@form} id="response-form">
+            <.simple_form for={@form} id="response-form" phx-change="validate" phx-submit="save">
             <.input
               field={@form[:status]}
               type="select"
@@ -60,7 +61,7 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
               autofocus />
 
             <.button>Post</.button>
-          </.form>
+          </.simple_form>
           <% else %>
             <.link href={~p"/users/log_in"} class="button">
               Log In To Post
@@ -110,4 +111,32 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     </section>
     """
   end
+
+  def handle_event("validate", %{"response" => response_params }, socket) do
+
+    changeset = Responses.change_response(%Response{}, response_params)
+
+    socket = assign(socket, :form, to_form(changeset))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("save", %{"response" => response_params }, socket) do
+
+    %{current_user: user, incident: incident} = socket.assigns
+
+    case Responses.create_response(user, incident, response_params) do
+      {:ok, _response} ->
+        changeset = Responses.change_response(%Response{})
+        socket = assign(socket, :form, to_form(changeset))
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        socket = assign(socket, :form, to_form(changeset))
+        {:noreply, socket}
+    end
+
+  end
+
+
 end
