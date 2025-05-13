@@ -7,6 +7,7 @@ defmodule HeadsUp.Responses do
   alias HeadsUp.Repo
 
   alias HeadsUp.Responses.Response
+  alias HeadsUp.Incidents
   alias HeadsUp.Incidents.Incident
   alias HeadsUp.Accounts.User
 
@@ -53,6 +54,20 @@ defmodule HeadsUp.Responses do
   """
   def create_response(%User{} = user, %Incident{} = incident, attrs \\ %{}) do
     %Response{user: user, incident: incident}
+    |> Response.changeset(attrs)
+    |> Repo.insert()
+    |> case do
+      {:ok, response} ->
+        Incidents.broadcast(incident.id, {:response_created, response})
+
+        {:ok, response}
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  def create_response(attrs \\ %{}) do
+    %Response{}
     |> Response.changeset(attrs)
     |> Repo.insert()
   end

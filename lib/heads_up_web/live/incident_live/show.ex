@@ -13,6 +13,10 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
   end
 
   def handle_params(%{"id" => id}, _uri, socket) do
+    if connected?(socket) do
+      Incidents.subscribe(id)
+    end
+
     incident = Incidents.get_incident!(id)
     responses = Incidents.list_responses(incident)
     socket =
@@ -166,13 +170,11 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     %{current_user: user, incident: incident} = socket.assigns
 
     case Responses.create_response(user, incident, response_params) do
-      {:ok, response} ->
+      {:ok, _response} ->
         changeset = Responses.change_response(%Response{})
         socket =
           socket
           |> assign(:form, to_form(changeset))
-          |> stream_insert(:responses, response, at: 0)
-          |> update(:response_count, &(&1 + 1))
         {:noreply, socket}
 
       {:error, changeset} ->
@@ -180,6 +182,18 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
         {:noreply, socket}
     end
 
+  end
+
+  def handle_info({:incident_updated, incident}, socket) do
+    {:noreply, assign(socket, :incident, incident)}
+  end
+
+  def handle_info({:response_created, response}, socket) do
+    socket =
+      socket
+      |> stream_insert(:responses, response, at: 0)
+      |> update(:response_count, &(&1 + 1))
+    {:noreply, socket}
   end
 
 
