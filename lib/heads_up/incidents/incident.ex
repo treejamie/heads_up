@@ -11,6 +11,7 @@ defmodule HeadsUp.Incidents.Incident do
 
     belongs_to(:category, HeadsUp.Categories.Category)
     has_many(:responses, HeadsUp.Responses.Response)
+    belongs_to(:heroic_response, HeadsUp.Responses.Response)
 
     timestamps(type: :utc_datetime)
   end
@@ -18,7 +19,7 @@ defmodule HeadsUp.Incidents.Incident do
   @doc false
   def changeset(incident, attrs) do
     incident
-    |> cast(attrs, [:name, :description, :priority, :status, :image_path, :category_id])
+    |> cast(attrs, [:name, :description, :priority, :status, :image_path, :category_id, :heroic_response_id])
     |> validate_required([:name, :description, :priority, :status, :image_path, :category_id])
     |> validate_length(:description, min: 10)
     |> validate_number(:priority, greater_than_or_equal_to: 1, less_than_or_equal_to: 3)
