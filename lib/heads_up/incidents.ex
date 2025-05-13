@@ -8,6 +8,13 @@ defmodule HeadsUp.Incidents do
     Repo.all(Incident)
   end
 
+  def list_responses(incident) do
+    incident
+    |> Ecto.assoc(:responses)
+    |> preload(:user)
+    |> order_by(desc: :inserted_at)
+    |> Repo.all()
+  end
 
   def filter_incidents(filter) do
     Incident
