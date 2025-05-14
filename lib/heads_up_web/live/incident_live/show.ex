@@ -3,6 +3,7 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
   alias HeadsUp.Incidents
   alias HeadsUp.Responses
   alias HeadsUp.Responses.Response
+  alias HeadsUpWeb.Presence
 
   on_mount({HeadsUpWeb.UserAuth, :mount_current_user})
 
@@ -13,23 +14,42 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
   end
 
   def handle_params(%{"id" => id}, _uri, socket) do
+    %{current_user: current_user} = socket.assigns
+
     if connected?(socket) do
       Incidents.subscribe(id)
+
+      {:ok, _} =
+        Presence.track(self(), topic(id), current_user.username, %{
+          online_at: System.system_time(:second)
+        })
     end
+
+    presence =
+      Presence.list(topic(id))
+      |> Enum.map(fn {username, %{metas: metas}} ->
+        %{id: username, metas: metas}
+      end)
 
     incident = Incidents.get_incident!(id)
     responses = Incidents.list_responses(incident)
+
     socket =
       socket
       |> assign(:incident, incident)
       |> assign(:response_count, Enum.count(responses))
       |> stream(:responses, responses)
-      |> assign_async(:urgent_incidents, fn  ->
+      |> stream(:presences, presence)
+      |> assign_async(:urgent_incidents, fn ->
         {:ok, %{urgent_incidents: Incidents.get_urgent(incident)}}
         # {:error, "full of owls 🦉"}
-      end )
+      end)
 
     {:noreply, socket}
+  end
+
+  defp topic(incident_id) do
+    "incident_onlookers:#{incident_id}"
   end
 
   def render(assigns) do
@@ -37,10 +57,9 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     <div class="incident-show">
       <.headline :if={@incident.heroic_response}>
         <.icon name="hero-sparkles-solid" />
-        Heroic Responder:
-        <%= @incident.heroic_response.user.username %>
+        Heroic Responder: {@incident.heroic_response.user.username}
         <:tagline>
-          <%= @incident.heroic_response.note %>
+          {@incident.heroic_response.note}
         </:tagline>
       </.headline>
       <div class="incident">
@@ -51,14 +70,14 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
             <h2>{@incident.name}</h2>
             <h3>{@incident.category.name}</h3>
             <div class="priority">
-            {@incident.priority}
+              {@incident.priority}
             </div>
           </header>
           <div class="totals">
             {@response_count} Responses
           </div>
           <div class="description">
-          {@incident.description}
+            {@incident.description}
           </div>
         </section>
       </div>
@@ -66,43 +85,54 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
         <div class="left">
           <div :if={@incident.status == :pending}>
             <%= if @current_user do %>
-            <.simple_form for={@form} id="response-form" phx-change="validate" phx-submit="save">
-            <.input
-              field={@form[:status]}
-              type="select"
-              prompt="Choose a status"
-              options={[:enroute, :arrived, :departed]} />
+              <.simple_form for={@form} id="response-form" phx-change="validate" phx-submit="save">
+                <.input
+                  field={@form[:status]}
+                  type="select"
+                  prompt="Choose a status"
+                  options={[:enroute, :arrived, :departed]}
+                />
 
-            <.input field={@form[:note]}
-              type="textarea"
-              placeholder="Note..."
-              autofocus />
+                <.input field={@form[:note]} type="textarea" placeholder="Note..." autofocus />
 
-            <.button>Post</.button>
-          </.simple_form>
-          <% else %>
-            <.link href={~p"/users/log_in"} class="button">
-              Log In To Post
-            </.link>
-          <% end %>
+                <.button>Post</.button>
+              </.simple_form>
+            <% else %>
+              <.link href={~p"/users/log_in"} class="button">
+                Log In To Post
+              </.link>
+            <% end %>
 
-          <div id="responses" phx-update="stream">
-            <.response :for={{dom_id, response} <- @streams.responses}
-              response={response}
-              id={dom_id}
+            <div id="responses" phx-update="stream">
+              <.response
+                :for={{dom_id, response} <- @streams.responses}
+                response={response}
+                id={dom_id}
               />
+            </div>
           </div>
-
-
-          </div>
-
-
         </div>
         <div class="right">
           <.urgent_incidents incidents={@urgent_incidents} />
+
+          <.onlookers :if={@current_user} presences={@streams.presences} />
         </div>
       </div>
     </div>
+    """
+  end
+
+  def onlookers(assigns) do
+    ~H"""
+    <section>
+      <h4>Onlookers</h4>
+      <ul class="presences" id="onlookers" phx-update="stream">
+        <li :for={{dom_id, %{id: username, metas: metas}} <- @presences} id={dom_id}>
+          <.icon name="hero-user-circle-solid" class="w-5 h-5" />
+          {username} ({length(metas)})
+        </li>
+      </ul>
+    </section>
     """
   end
 
@@ -118,28 +148,27 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
         </:loading>
 
         <:failed :let={{:error, reason}}>
-        <div class="failed">
+          <div class="failed">
             {reason}
           </div>
         </:failed>
 
         <ul class="incidents">
-            <li :for={incident <- result}>
+          <li :for={incident <- result}>
             <.link navigate={~p"/incidents/#{incident}"}>
-                <img src={incident.image_path}>
-                {incident.name}
-              </.link>
-            </li>
+              <img src={incident.image_path} />
+              {incident.name}
+            </.link>
+          </li>
         </ul>
-
       </.async_result>
-
     </section>
     """
   end
 
   attr :id, :string, required: true
   attr :response, Response, required: true
+
   def response(assigns) do
     ~H"""
     <div class="response" id={@id}>
@@ -164,8 +193,7 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     """
   end
 
-  def handle_event("validate", %{"response" => response_params }, socket) do
-
+  def handle_event("validate", %{"response" => response_params}, socket) do
     changeset = Responses.change_response(%Response{}, response_params)
 
     socket = assign(socket, :form, to_form(changeset))
@@ -173,23 +201,23 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
     {:noreply, socket}
   end
 
-  def handle_event("save", %{"response" => response_params }, socket) do
-
+  def handle_event("save", %{"response" => response_params}, socket) do
     %{current_user: user, incident: incident} = socket.assigns
 
     case Responses.create_response(user, incident, response_params) do
       {:ok, _response} ->
         changeset = Responses.change_response(%Response{})
+
         socket =
           socket
           |> assign(:form, to_form(changeset))
+
         {:noreply, socket}
 
       {:error, changeset} ->
         socket = assign(socket, :form, to_form(changeset))
         {:noreply, socket}
     end
-
   end
 
   def handle_info({:incident_updated, incident}, socket) do
@@ -201,8 +229,7 @@ defmodule HeadsUpWeb.IncidentsLive.Show do
       socket
       |> stream_insert(:responses, response, at: 0)
       |> update(:response_count, &(&1 + 1))
+
     {:noreply, socket}
   end
-
-
 end
