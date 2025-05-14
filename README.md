@@ -1,5 +1,10 @@
 # Heads Up
 
+This was my code as I worked along through the Pragmatic Studeio "Full Stack Phoenix" course.
+
+![image](https://github.com/user-attachments/assets/80ec619c-4ee0-462a-8bbd-a45040151e78)
+
+
 
 ## 🗃️ Database
 
